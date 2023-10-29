@@ -1,5 +1,13 @@
 import { createApp } from "vue";
-import "./styles.css";
 import App from "./App.vue";
+import router from "@/routers/Router";
 
-createApp(App).mount("#app");
+import "@/styles/ResetCSS.css";
+import "@/styles/DarkSkin.css";
+
+const app = createApp(App);
+
+app.use(router);
+
+app.mount("#app");
+
