@@ -6,20 +6,17 @@ use tauri::Manager;
 mod database;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
+fn greet(_name: &str) -> String {
     "Money Memo".to_string()
 }
-#[tauri::command]
-fn greet22(name: &str) -> String {
-    "Money Memo".to_string()
-}
+
 pub struct Conn {
     conn: Option<rusqlite::Connection>,
 }
 impl Conn {
     pub fn new(conn: Option<rusqlite::Connection>) -> Self {
         Conn {
-            conn: conn, // 使用 Some 包装 Connection
+            conn, // 使用 Some 包装 Connection
         }
     }
     pub fn get_conn(&mut self) -> &Option<rusqlite::Connection> {
@@ -46,7 +43,8 @@ fn main() {
             greet,
             database::create_connection,
             database::is_database_exist,
-            database::create_new_tables
+            database::create_new_tables,
+            database::insert_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

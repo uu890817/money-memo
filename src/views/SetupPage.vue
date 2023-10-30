@@ -1,11 +1,13 @@
 <template>
-	<div class="setup-wrap">
+	<InsertCategoryData v-if="isSetupSuccess" />
+
+	<div class="setup-wrap animate__animated animate__zoomIn" v-else>
 		<img class="setup-logo" src="../assets/MoneyMemo-Long.svg">
 
 		<p class="setup-text">沒有發現資料庫，請問要新增新資料庫還是導入已有資料庫 ?</p>
 
 		<div class="setup-button">
-			<n-button class="setup-button__importDataBase" type="info" ghost>
+			<n-button class="setup-button__importDataBase" type="info" ghost @click="importDB">
 				<n-icon>
 					<ArrowRedoCircleSharp />
 				</n-icon>
@@ -18,17 +20,33 @@
 				新增新資料庫
 			</n-button>
 		</div>
-
 	</div>
 </template>
   
 <script setup lang="ts">
+import InsertCategoryData from "@/components/setup/InsertCategoryData.vue";
 import { NButton, NIcon } from "naive-ui";
 import { ArrowRedoCircleSharp, AddCircleSharp } from "@vicons/ionicons5";
 import { invoke } from "@tauri-apps/api/tauri";
+import { ref } from "vue";
+
+const isSetupSuccess = ref(false);
+
+
+const importDB = async () => {
+	// TODO : 導入已有資料庫
+};
 
 const newDB = async () => {
-	await invoke("create_connection");
+	let connectionState = await invoke("create_connection");
+	if (connectionState === true) {
+		let tableState = await invoke("create_new_tables");
+		if (tableState === true) {
+			isSetupSuccess.value = true;
+		}
+	} else {
+		console.log("資料庫建立失敗");
+	}
 };
 
 
@@ -45,15 +63,17 @@ const newDB = async () => {
 .setup-logo {
 	position: absolute;
 	top: 10%;
-	max-width: 30%;
+	max-width: 40%;
 }
 
 .setup-text {
 	font-size: 20px;
+	margin-bottom: 100px;
 }
 
 .n-button {
-	margin: 30px;
+	margin-left: 50px;
+	margin-right: 50px;
 	width: 300px;
 	height: 100px;
 	font-size: 20px;

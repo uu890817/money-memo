@@ -1,7 +1,9 @@
 <template>
-	<div class="container">
-		<router-view />
-	</div>
+	<n-config-provider :theme="darkTheme">
+		<div class="container">
+			<router-view />
+		</div>
+	</n-config-provider>
 </template>
 
 <script setup lang="ts">
@@ -11,6 +13,7 @@
 import { invoke } from "@tauri-apps/api";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { NConfigProvider, darkTheme } from "naive-ui";
 
 const router = useRouter();
 const bool = ref(false);
@@ -33,4 +36,17 @@ onMounted(() => {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+* {
+	-moz-user-select: none;
+	/* Firefox */
+	-webkit-user-select: none;
+	/* Chrome , Safari*/
+	-ms-user-select: none;
+	/* IE10 */
+	-khtml-user-select: none;
+	/* 古早瀏覽器 */
+	user-select: none;
+
+}
+</style>

@@ -18,4 +18,10 @@ impl Category {
         conn.execute(sql, [])?;
         Ok(())
     }
+
+    pub fn insert_data(data: String, conn: &Connection) -> Result<(), rusqlite::Error> {
+        let sql = "INSERT INTO Category(Name) VALUES(:name)";
+        conn.execute(sql, &[(":name", &data)])?;
+        Ok(())
+    }
 }
