@@ -1,6 +1,6 @@
 <template>
-	<InsertCategoryData v-if="isSetupSuccess" />
-
+	<InsertCategoryData @gotoItem="gotoItem" v-if="componentsSept === 'InsertCategoryData'" />
+	<InsertItemData v-else-if="componentsSept === 'InsertItemData'" />
 	<div class="setup-wrap animate__animated animate__zoomIn" v-else>
 		<img class="setup-logo" src="../assets/MoneyMemo-Long.svg">
 
@@ -25,13 +25,19 @@
   
 <script setup lang="ts">
 import InsertCategoryData from "@/components/setup/InsertCategoryData.vue";
-import { NButton, NIcon } from "naive-ui";
+import InsertItemData from "@/components/setup/InsertItemData.vue";
+
+import { NButton, NIcon, useMessage } from "naive-ui";
 import { ArrowRedoCircleSharp, AddCircleSharp } from "@vicons/ionicons5";
 import { invoke } from "@tauri-apps/api/tauri";
 import { ref } from "vue";
 
-const isSetupSuccess = ref(false);
+const message = useMessage();
+const componentsSept = ref("default");
 
+const gotoItem = () => {
+	componentsSept.value = "InsertItemData";
+};
 
 const importDB = async () => {
 	// TODO : 導入已有資料庫
@@ -42,10 +48,11 @@ const newDB = async () => {
 	if (connectionState === true) {
 		let tableState = await invoke("create_new_tables");
 		if (tableState === true) {
-			isSetupSuccess.value = true;
+			message.success("資料庫建立成功");
+			componentsSept.value = "InsertCategoryData";
 		}
 	} else {
-		console.log("資料庫建立失敗");
+		message.error("資料庫建立失敗");
 	}
 };
 
@@ -80,6 +87,7 @@ const newDB = async () => {
 	line-height: 1.5;
 
 }
+
 
 .n-button:hover {
 	background: #2d323c;

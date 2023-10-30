@@ -3,18 +3,32 @@
 		<p class="insert-default-title">建立預設資料</p>
 		<div class="insert-default-class-wrap">
 			<p class="insert-default-class-title">新增交易明細</p>
-			<p class="insert-default-class-describe">交易類別是交易明細的分類名稱，例如:餐費、娛樂費、水電瓦斯費等等大類別</p>
+			<p class="insert-default-class-describe">交易明細是細分後的交易類型，例如:餐費中的『早餐、午餐、晚餐』、娛樂費的『看電影、課金』等等，未來可進行修改</p>
+
 			<n-scrollbar style="max-height: 400px">
-				<n-dynamic-input v-model:value="value" placeholder="請輸入" :min="1" :max="200" />
+				<n-collapse v-for="category in categorys" :key="category.category_id">
+
+					<n-collapse-item :title="category.name" :name="category.category_id">
+						<n-dynamic-input v-model:value="value[category.category_id - 1]" placeholder="請輸入明細" :min="0"
+							:max="200">
+							<template #create-button-default>
+								按此添加新明細
+							</template>
+						</n-dynamic-input>
+						<template #header-extra>
+							目前明細筆數：{{ value[category.category_id - 1].length }} 筆
+						</template>
+					</n-collapse-item>
+					<n-divider />
+
+				</n-collapse>
+
 			</n-scrollbar>
-			<n-space justify="space-between">
-				<n-button type="info" ghost>
-					上一步
-				</n-button>
-				<n-button type="success" ghost>
-					下一步
-				</n-button>
-			</n-space>
+			<!-- <pre>{{ JSON.stringify(value, null, 2) }}</pre> -->
+
+			<n-button type="success" ghost @click="insertItems">
+				下一步
+			</n-button>
 		</div>
 
 		<!-- <pre>{{ JSON.stringify(value, null, 2) }}</pre> -->
@@ -22,14 +36,32 @@
 </template>
     
 <script setup lang='ts'>
-import { NDynamicInput, NScrollbar, NButton, NSpace } from "naive-ui";
-import { ref } from "vue";
+import { NDynamicInput, NScrollbar, NButton, NCollapse, NCollapseItem, NDivider } from "naive-ui";
+import { invoke } from "@tauri-apps/api/tauri";
+import { Ref, onMounted, ref } from "vue";
 
-let value = ref([
-	"餐費",
-	"娛樂費",
-	"水電瓦斯費",
-]);
+type Categorys = {
+	category_id: number;
+	name: string;
+}
+const categorys: Ref<Categorys[]> = ref([]);
+const value: Ref<string[][]> = ref([]);
+
+
+const insertItems = () => {
+
+};
+
+
+onMounted(async () => {
+	categorys.value = JSON.parse(await invoke("select_all", { from: "category" }));
+	for (let i = 0; i < categorys.value.length; i++) {
+		value.value.push([]);
+	}
+});
+
+
+
 </script>
     
 <style scoped>
@@ -68,7 +100,27 @@ let value = ref([
 }
 
 .n-button {
-	width: 200px;
-	margin: 20px 40px;
+	width: 100%;
+	/* height: 50px; */
+	margin: 30px 0;
+}
+
+.n-button:hover {
+	background: #2d323c;
+	transition: all 0.2s;
+}
+
+.n-collapse-item {
+	padding: 10px 10px;
+	border-radius: 5px;
+	transition: all 0.2s;
+
+}
+
+
+.n-collapse-item:hover {
+
+	background-color: #292d34;
+	transition: all 0.2s;
 }
 </style>

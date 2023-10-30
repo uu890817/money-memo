@@ -49,7 +49,7 @@ pub fn create_new_tables(tauri_connection: tauri::State<std::sync::Mutex<Conn>>)
     }
 }
 
-fn remove_quotes(input: &str) -> &str {
+pub fn remove_quotes(input: &str) -> &str {
     if input.starts_with('"') && input.ends_with('"') && input.len() >= 2 {
         &input[1..input.len() - 1]
     } else {
@@ -65,27 +65,34 @@ pub fn insert_data(
 ) -> bool {
     let mut tauri_lock_connection = tauri_connection.lock().unwrap();
     let connection = tauri_lock_connection.get_conn();
+    let mut result: Result<(), rusqlite::Error>;
     match connection {
         Some(conn) => match to.as_str() {
             "category" => {
-                println!("{}", &data);
-                let parsed_data: Result<serde_json::Value, serde_json::Error> =
-                    serde_json::from_str(&data);
-                match parsed_data {
-                    Ok(json) => {
-                        println!("{:?}", &json);
-                        print!("{}", (&json["name"]).to_string());
-                        tables::Category::insert_data(
-                            remove_quotes((&json["name"]).to_string().as_str()).to_string(),
-                            &conn,
-                        );
-                    }
-                    Err(e) => println!("{}", e),
-                }
-                true
+                result = tables::Category::insert_data(data, &conn);
             }
-            _ => false,
+            "item" => {
+                result = tables::Item::insert_data(data, &conn);
+            }
+            _ => todo!(),
         },
         None => return false,
+    }
+    match result {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+#[tauri::command]
+pub fn select_all(from: String, tauri_connection: tauri::State<std::sync::Mutex<Conn>>) -> String {
+    let mut tauri_lock_connection = tauri_connection.lock().unwrap();
+    let connection = tauri_lock_connection.get_conn();
+    match connection {
+        Some(conn) => match from.as_str() {
+            "category" => tables::Category::select_all(&conn).unwrap(),
+            _ => "Err".to_string(),
+        },
+        None => "Err".to_string(),
     }
 }

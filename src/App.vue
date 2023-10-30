@@ -1,8 +1,11 @@
 <template>
 	<n-config-provider :theme="darkTheme">
-		<div class="container">
-			<router-view />
-		</div>
+		<n-global-style />
+		<n-message-provider>
+			<div class="container">
+				<router-view />
+			</div>
+		</n-message-provider>
 	</n-config-provider>
 </template>
 
@@ -13,7 +16,7 @@
 import { invoke } from "@tauri-apps/api";
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { NConfigProvider, darkTheme } from "naive-ui";
+import { NConfigProvider, darkTheme, NGlobalStyle, NMessageProvider } from "naive-ui";
 
 const router = useRouter();
 const bool = ref(false);
@@ -36,7 +39,7 @@ onMounted(() => {
 
 </script>
 
-<style scoped>
+<style >
 * {
 	-moz-user-select: none;
 	/* Firefox */
@@ -48,5 +51,11 @@ onMounted(() => {
 	/* 古早瀏覽器 */
 	user-select: none;
 
+}
+
+.n-config-provider {
+	font-family: arial, "Microsoft JhengHei", "微軟正黑體", sans-serif !important;
+	background-color: #1d2128;
+	color: #bdc9dc;
 }
 </style>

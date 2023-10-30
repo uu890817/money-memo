@@ -1,5 +1,8 @@
 use rusqlite::Connection;
 
+use crate::database::remove_quotes;
+
+#[derive(serde::Serialize, Debug)]
 pub struct Item {
     item_id: Option<i32>,
     category_id: i32,
@@ -23,6 +26,32 @@ impl Item {
             FOREIGN KEY(CategoryId) REFERENCES Category(CategoryId)
         );";
         conn.execute(sql, [])?;
+        Ok(())
+    }
+
+    pub fn insert_data(data: String, conn: &Connection) -> Result<(), rusqlite::Error> {
+        let sql = "INSERT INTO Item(CategoryId, Name ) VALUES(:CategoryId, :Name)";
+        println!("{}", &data);
+
+        let parsed_data: Result<serde_json::Value, serde_json::Error> = serde_json::from_str(&data);
+        println!("{:?}", &parsed_data);
+
+        match parsed_data {
+            Ok(json) => {
+                conn.execute(
+                    sql,
+                    &[
+                        (
+                            ":CategoryId",
+                            remove_quotes(&json["CategoryId"].to_string()),
+                        ),
+                        (":Name", remove_quotes(&json["Name"].to_string())),
+                    ],
+                )?;
+            }
+            Err(_) => todo!(),
+        }
+
         Ok(())
     }
 }

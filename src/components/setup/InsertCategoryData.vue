@@ -3,18 +3,14 @@
 		<p class="insert-default-title">建立預設資料</p>
 		<div class="insert-default-class-wrap">
 			<p class="insert-default-class-title">新增交易類別</p>
-			<p class="insert-default-class-describe">交易類別是交易明細的分類名稱，例如:餐費、娛樂費、水電瓦斯費等等大類別</p>
+			<p class="insert-default-class-describe">交易類別是交易明細的分類名稱，例如:餐費、娛樂費、水電瓦斯費等等大類別，未來可進行修改</p>
 			<n-scrollbar style="max-height: 400px">
 				<n-dynamic-input v-model:value="value" placeholder="請輸入" :min="1" :max="200" />
 			</n-scrollbar>
-			<n-space justify="space-between">
-				<n-button type="info" ghost>
-					上一步
-				</n-button>
-				<n-button type="success" ghost @click="insert">
-					下一步
-				</n-button>
-			</n-space>
+
+			<n-button type="success" ghost @click="insert">
+				下一步
+			</n-button>
 		</div>
 
 		<!-- <pre>{{ JSON.stringify(value, null, 2) }}</pre> -->
@@ -22,9 +18,13 @@
 </template>
     
 <script setup lang='ts'>
-import { NDynamicInput, NScrollbar, NButton, NSpace } from "naive-ui";
-import { ref } from "vue";
+import { NDynamicInput, NScrollbar, NButton, useMessage, NIcon } from "naive-ui";
+import { h, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
+import { HourglassOutline } from "@vicons/ionicons5";
+const message = useMessage();
+const emits = defineEmits(["gotoItem"]);
+
 
 const value = ref([
 	"餐費",
@@ -33,11 +33,28 @@ const value = ref([
 ]);
 
 const insert = async () => {
+	let errorFlag = false;
 	for (let i of value.value) {
-		console.log(JSON.stringify({ name: i }));
-
-		console.log(await invoke("insert_data", { to: "category", data: JSON.stringify({ name: i }) }));
+		console.log({ Name: i });
+		let result = await invoke("insert_data", { to: "category", data: JSON.stringify({ Name: i }) });
+		if (!result) {
+			message.error(`類別${i}新增失敗!`, {
+				icon: () => h(NIcon, null, { default: () => h(HourglassOutline) })
+			});
+			errorFlag = true;
+		} else {
+			message.warning(`類別${i}新增成功!`, {
+				icon: () => h(NIcon, null, { default: () => h(HourglassOutline) })
+			});
+		}
 	}
+	if (!errorFlag) {
+		message.success("類別資料新增完成!!!");
+		emits("gotoItem");
+	} else {
+		message.error("類別資料新增失敗!");
+	}
+
 
 };
 
@@ -81,7 +98,12 @@ const insert = async () => {
 }
 
 .n-button {
-	width: 200px;
-	margin: 20px 40px;
+	width: 100%;
+	margin: 60px 0;
+}
+
+.n-button:hover {
+	background: #2d323c;
+	transition: all 0.2s;
 }
 </style>

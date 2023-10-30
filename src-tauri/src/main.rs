@@ -45,6 +45,7 @@ fn main() {
             database::is_database_exist,
             database::create_new_tables,
             database::insert_data,
+            database::select_all,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
