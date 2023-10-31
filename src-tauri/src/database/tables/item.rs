@@ -54,4 +54,8 @@ impl Item {
 
         Ok(())
     }
+
+    // pub fn select_all(conn: &Connection) -> Result<(), rusqlite::Error> {
+    //     let sql = "SELECT ItemId, CategoryId, Name FROM Items JOIN Category";
+    // }
 }

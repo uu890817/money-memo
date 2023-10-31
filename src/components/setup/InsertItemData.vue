@@ -36,7 +36,7 @@
 </template>
     
 <script setup lang='ts'>
-import { NDynamicInput, NScrollbar, NButton, NCollapse, NCollapseItem, NDivider } from "naive-ui";
+import { NDynamicInput, NScrollbar, NButton, NCollapse, NCollapseItem, NDivider, useMessage } from "naive-ui";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Ref, onMounted, ref } from "vue";
 
@@ -44,12 +44,25 @@ type Categorys = {
 	category_id: number;
 	name: string;
 }
+const message = useMessage();
 const categorys: Ref<Categorys[]> = ref([]);
 const value: Ref<string[][]> = ref([]);
 
 
-const insertItems = () => {
-
+const insertItems = async () => {
+	for (let i = 0; i < value.value.length; i++) {
+		if (value.value[i].length !== 0) {
+			console.log(value.value[i].length);
+			for (let j of value.value[i]) {
+				let result = await invoke("insert_data", { to: "Item", data: JSON.stringify({ "CategoryId": categorys.value[i].category_id, "Name": j }) });
+				if (result) {
+					message.success(`${categorys.value[i].name} : ${j} 新增成功`);
+				} else {
+					message.error(`${categorys.value[i].name} : ${j} 新增失敗`);
+				}
+			}
+		}
+	}
 };
 
 

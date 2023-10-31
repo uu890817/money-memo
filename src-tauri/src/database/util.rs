@@ -1,5 +1,4 @@
 use rusqlite::Connection;
-use serde_json::{error::Category, json};
 use std::path::Path;
 
 use crate::Conn;
@@ -65,13 +64,13 @@ pub fn insert_data(
 ) -> bool {
     let mut tauri_lock_connection = tauri_connection.lock().unwrap();
     let connection = tauri_lock_connection.get_conn();
-    let mut result: Result<(), rusqlite::Error>;
+    let result: Result<(), rusqlite::Error>;
     match connection {
         Some(conn) => match to.as_str() {
-            "category" => {
+            "Category" => {
                 result = tables::Category::insert_data(data, &conn);
             }
-            "item" => {
+            "Item" => {
                 result = tables::Item::insert_data(data, &conn);
             }
             _ => todo!(),

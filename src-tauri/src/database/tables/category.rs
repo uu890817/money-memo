@@ -6,11 +6,16 @@ use crate::database::remove_quotes;
 pub struct Category {
     category_id: Option<i32>,
     name: String,
+    color: String,
 }
 
 impl Category {
-    pub fn new(category_id: Option<i32>, name: String) -> Self {
-        Category { category_id, name }
+    pub fn new(category_id: Option<i32>, name: String, color: String) -> Self {
+        Category {
+            category_id,
+            name,
+            color,
+        }
     }
 
     pub fn create_table(conn: &Connection) -> Result<(), rusqlite::Error> {
@@ -42,6 +47,7 @@ impl Category {
             Ok(Category {
                 category_id: row.get(0)?,
                 name: row.get(1)?,
+                color: "#FFFFFF".to_string(),
             })
         })?;
 

@@ -36,7 +36,7 @@ const insert = async () => {
 	let errorFlag = false;
 	for (let i of value.value) {
 		console.log({ Name: i });
-		let result = await invoke("insert_data", { to: "category", data: JSON.stringify({ Name: i }) });
+		let result = await invoke("insert_data", { to: "Category", data: JSON.stringify({ Name: i }) });
 		if (!result) {
 			message.error(`類別${i}新增失敗!`, {
 				icon: () => h(NIcon, null, { default: () => h(HourglassOutline) })
