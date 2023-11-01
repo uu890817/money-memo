@@ -2,13 +2,13 @@
 	<div class="insert-default-wrap">
 		<p class="insert-default-title">建立預設資料</p>
 		<div class="insert-default-class-wrap">
-			<p class="insert-default-class-title">新增交易類別</p>
-			<p class="insert-default-class-describe">交易類別是交易明細的分類名稱，例如:餐費、娛樂費、水電瓦斯費等等大類別，未來可進行修改</p>
+			<p class="insert-default-class-title">新增交易方式</p>
+			<p class="insert-default-class-describe">交易方式可以是現金交易、電子支付、轉帳等方式</p>
 			<n-scrollbar style="max-height: 400px">
-				<n-dynamic-input v-model:value="value" placeholder="請輸入" :min="0" :max="200" />
+				<n-dynamic-input v-model:value="value" placeholder="請輸入交易方式" :min="0" :max="200" />
 			</n-scrollbar>
 
-			<n-button type="success" ghost @click="insertCategory">
+			<n-button type="success" ghost @click="insertPayMethod">
 				下一步
 			</n-button>
 		</div>
@@ -23,34 +23,33 @@ import { h, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { HourglassOutline } from "@vicons/ionicons5";
 const message = useMessage();
-const emits = defineEmits(["gotoItem"]);
-
+const emits = defineEmits(["gotoSuccess"]);
 
 const value = ref([
-	"餐費",
-	"娛樂費",
-	"水電瓦斯費",
+	"現金",
+	"Line Pay",
+
 ]);
 
-const insertCategory = async () => {
+const insertPayMethod = async () => {
 	let errorFlag = false;
 	for (let i of value.value) {
 		console.log({ Name: i });
-		let result = await invoke("insert_data", { to: "Category", data: JSON.stringify({ Name: i }) });
+		let result = await invoke("insert_data", { to: "PaymentMethod", data: JSON.stringify({ Name: i }) });
 		if (!result) {
-			message.error(`類別${i}新增失敗!`, {
+			message.error(`交易方式"${i}"新增失敗!`, {
 				icon: () => h(NIcon, null, { default: () => h(HourglassOutline) })
 			});
 			errorFlag = true;
 		} else {
-			message.warning(`類別${i}新增成功!`, {
+			message.warning(`交易方式"${i}"新增成功!`, {
 				icon: () => h(NIcon, null, { default: () => h(HourglassOutline) })
 			});
 		}
 	}
 	if (!errorFlag) {
 		message.success("類別資料新增完成!!!");
-		emits("gotoItem");
+		emits("gotoSuccess");
 	} else {
 		message.error("類別資料新增失敗!");
 	}

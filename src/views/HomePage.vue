@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="home-wrap">
 		HELLO HOME PAGE
 
 	</div>
@@ -9,4 +9,8 @@
 
 </script>
     
-<style></style>
+<style>
+.home-wrap {
+	height: 100vh;
+}
+</style>

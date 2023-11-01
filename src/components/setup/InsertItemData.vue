@@ -9,12 +9,15 @@
 				<n-collapse v-for="category in categorys" :key="category.category_id">
 
 					<n-collapse-item :title="category.name" :name="category.category_id">
-						<n-dynamic-input v-model:value="value[category.category_id - 1]" placeholder="請輸入明細" :min="0"
-							:max="200">
+						<n-dynamic-input style="padding-bottom: 10px;" v-model:value="value[category.category_id - 1]"
+							placeholder="請輸入明細" :min="0" :max="200">
 							<template #create-button-default>
-								按此添加新明細
+								<p>按此添加新明細</p>
 							</template>
 						</n-dynamic-input>
+						<template #header>
+							<p style="padding: 10px;">{{ category.name }}</p>
+						</template>
 						<template #header-extra>
 							目前明細筆數：{{ value[category.category_id - 1].length }} 筆
 						</template>
@@ -45,11 +48,13 @@ type Categorys = {
 	name: string;
 }
 const message = useMessage();
+const emits = defineEmits(["gotoPayMethod"]);
 const categorys: Ref<Categorys[]> = ref([]);
 const value: Ref<string[][]> = ref([]);
 
 
 const insertItems = async () => {
+	let errorFlag = false;
 	for (let i = 0; i < value.value.length; i++) {
 		if (value.value[i].length !== 0) {
 			console.log(value.value[i].length);
@@ -59,9 +64,16 @@ const insertItems = async () => {
 					message.success(`${categorys.value[i].name} : ${j} 新增成功`);
 				} else {
 					message.error(`${categorys.value[i].name} : ${j} 新增失敗`);
+					errorFlag = true;
 				}
 			}
 		}
+	}
+	if (errorFlag) {
+		message.error("新增失敗");
+		return;
+	} else {
+		emits("gotoPayMethod");
 	}
 };
 
@@ -124,7 +136,7 @@ onMounted(async () => {
 }
 
 .n-collapse-item {
-	padding: 10px 10px;
+	padding: 0px 10px;
 	border-radius: 5px;
 	transition: all 0.2s;
 
@@ -132,7 +144,6 @@ onMounted(async () => {
 
 
 .n-collapse-item:hover {
-
 	background-color: #292d34;
 	transition: all 0.2s;
 }

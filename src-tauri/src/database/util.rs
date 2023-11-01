@@ -33,11 +33,11 @@ pub fn create_new_tables(tauri_connection: tauri::State<std::sync::Mutex<Conn>>)
     let connection = tauri_lock_connection.get_conn();
     match connection {
         Some(conn) => {
-            tables::AppConfig::create_table(&conn);
-            tables::Category::create_table(&conn);
-            tables::Item::create_table(&conn);
-            tables::PaymentMethod::create_table(&conn);
-            tables::Transaction::create_table(&conn);
+            let _ = tables::AppConfig::create_table(&conn);
+            let _ = tables::Category::create_table(&conn);
+            let _ = tables::Item::create_table(&conn);
+            let _ = tables::PaymentMethod::create_table(&conn);
+            let _ = tables::Transaction::create_table(&conn);
             println!("Tables Create Success");
             true
         }
@@ -72,6 +72,9 @@ pub fn insert_data(
             }
             "Item" => {
                 result = tables::Item::insert_data(data, &conn);
+            }
+            "PaymentMethod" => {
+                result = tables::PaymentMethod::insert_data(data, &conn);
             }
             _ => todo!(),
         },

@@ -1,6 +1,9 @@
 <template>
 	<InsertCategoryData @gotoItem="gotoItem" v-if="componentsSept === 'InsertCategoryData'" />
-	<InsertItemData v-else-if="componentsSept === 'InsertItemData'" />
+	<InsertItemData @gotoPayMethod="gotoPayMethod" v-else-if="componentsSept === 'InsertItemData'" />
+	<InsertPayMethodData @gotoSuccess="gotoSuccess" v-else-if="componentsSept === 'InsertPayMethod'" />
+	<SetupSuccess v-else-if="componentsSept === 'SetupSuccess'" />
+
 	<div class="setup-wrap animate__animated animate__zoomIn" v-else>
 		<img class="setup-logo" src="../assets/MoneyMemo-Long.svg">
 
@@ -26,6 +29,8 @@
 <script setup lang="ts">
 import InsertCategoryData from "@/components/setup/InsertCategoryData.vue";
 import InsertItemData from "@/components/setup/InsertItemData.vue";
+import InsertPayMethodData from "@/components/setup/InsertPayMethodData.vue";
+import SetupSuccess from "@/components/setup/SetupSuccess.vue";
 
 import { NButton, NIcon, useMessage } from "naive-ui";
 import { ArrowRedoCircleSharp, AddCircleSharp } from "@vicons/ionicons5";
@@ -38,9 +43,15 @@ const componentsSept = ref("default");
 const gotoItem = () => {
 	componentsSept.value = "InsertItemData";
 };
+const gotoPayMethod = () => {
+	componentsSept.value = "InsertPayMethod";
+};
+const gotoSuccess = () => {
+	componentsSept.value = "SetupSuccess";
+};
 
 const importDB = async () => {
-	// TODO : 導入已有資料庫
+	message.error("導入功能製作中");
 };
 
 const newDB = async () => {
