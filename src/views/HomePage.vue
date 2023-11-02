@@ -3,15 +3,16 @@
 
 		<div class="year-month-wrap">
 			<div class="year">
-				<n-button strong secondary>
+				<n-button strong secondary @click="chooseDate.year = (parseInt(chooseDate.year) - 1).toString()">
 					<template #icon>
 						<n-icon>
 							<ChevronBackCircleSharp />
 						</n-icon>
 					</template>
 				</n-button>
-				<n-input type="text" :allow-input="onlyAllowYear" :maxlength="4" placeholder="請輸入年分" />
-				<n-button strong secondary>
+				<n-input type="text" :allow-input="onlyAllowYear" :maxlength="4" placeholder="請輸入年分"
+					v-model:value="chooseDate.year" />
+				<n-button strong secondary @click="chooseDate.year = (parseInt(chooseDate.year) + 1).toString()">
 					<template #icon>
 						<n-icon>
 							<ChevronForwardCircleSharp />
@@ -22,15 +23,18 @@
 			</div>
 
 			<div class="month">
-				<n-button strong secondary>
+				<n-button strong secondary
+					@click="chooseDate.month = chooseDate.month === '1' ? '12' : (parseInt(chooseDate.month) - 1).toString()">
 					<template #icon>
 						<n-icon>
 							<ChevronBackCircleSharp />
 						</n-icon>
 					</template>
 				</n-button>
-				<n-input type="text" :allow-input="onlyAllowMonth" :maxlength="2" placeholder="請輸入月分" />
-				<n-button strong secondary>
+				<n-input type="text" :allow-input="onlyAllowMonth" :maxlength="2" placeholder="請輸入月分"
+					v-model:value="chooseDate.month" />
+				<n-button strong secondary
+					@click="chooseDate.month = chooseDate.month === '12' ? '1' : (parseInt(chooseDate.month) + 1).toString()">
 					<template #icon>
 						<n-icon>
 							<ChevronForwardCircleSharp />
@@ -50,12 +54,23 @@
 				</template>
 			</n-button>
 
-			<div class="weekday-date" v-for="(i, index) in weekday" :key="i">
-				<p :style="(i === 'Sun' || i === 'Sat') ? 'color:#c25e5e;' : 'color:#bdc9dc;'">{{ i }}</p>
-				<n-button strong secondary circle type="success">
-					{{ index + 1 }}
+			<div class="weekday-date" v-for="i in weekDate" :key="i.day">
+				<p :style="(i.weekday === 'Sun' || i.weekday === 'Sat') ? 'color:#c25e5e;' : 'color:#bdc9dc;'">{{
+					i.weekday }}</p>
+				<n-button class="today-button" strong secondary circle type="error"
+					v-if="i.isThisMonth && chooseDate.year === today.year && chooseDate.month === today.month && i.day === today.day"
+					@click="log(i)">
+					{{ i.day }}
+				</n-button>
+				<n-button strong secondary circle type="success" v-else-if="i.isThisMonth && i.year === today.year"
+					@click="log(i)">
+					{{ i.day }}
+				</n-button>
+				<n-button circle tertiary v-else @click="log(i)">
+					{{ i.day }}
 				</n-button>
 			</div>
+
 			<n-button strong secondary>
 				<template #icon>
 					<n-icon>
@@ -82,7 +97,6 @@
 		<n-divider dashed>
 			<span>新增資料</span>
 		</n-divider>
-
 		<div class="data-insert-wrap">
 			<n-space justify="center">
 				<div class="data-insert-box">
@@ -157,7 +171,7 @@
 import { NButton, NInput, NIcon, NDivider, NDataTable, NEmpty, NDatePicker, NSelect, NSpace, NInputNumber } from "naive-ui";
 import { ChevronBackCircleSharp, ChevronForwardCircleSharp } from "@vicons/ionicons5";
 import NavBar from "@/components/home/NavBar.vue";
-import { Ref, ref } from "vue";
+import { Ref, onMounted, ref } from "vue";
 
 type MemoData = {
 	date: string,
@@ -169,28 +183,61 @@ type MemoData = {
 	note: string
 };
 type InsertData = {
-	date: number,
-	category: string,
-	item: string,
-	type: string,
-	cost: number,
-	payMethod: string,
-	note: string
+	date: number;
+	category: string | null;
+	item: string | null;
+	type: string | null;
+	cost: number;
+	payMethod: string | null;
+	note: string | null;
 };
-
-
-const insertData: Ref<InsertData> = ref(
+type Today = {
+	timeStamp: number,
+	year: string,
+	month: string,
+	day: string,
+	weekday: string
+}
+type WeekDate = {
+	year: string,
+	month: string,
+	day: string,
+	weekday: string,
+	isThisMonth: boolean,
+}
+//-----------------------------------------------------------------------------------------------------------------------
+const log = (i) => {
+	console.log(i);
+}
+const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const today: Ref<Today> = ref({
+	timeStamp: new Date().getTime(),
+	year: new Date().getFullYear().toString(),
+	month: (new Date().getMonth() + 1).toString(),
+	day: new Date().getDate().toString(),
+	weekday: new Date().getDay().toString()
+});
+const weekDate: Ref<WeekDate[]> = ref([]);
+const chooseDate: WeekDate = ref(
 	{
-		date: 10000,
-		category: "",
-		item: "",
-		type: "",
-		cost: 0,
-		payMethod: "",
-		note: ""
+		year: today.value.year,
+		month: today.value.month,
+		day: today.value.day,
+		weekday: weekday[parseInt(today.value.weekday)],
+		isThisMonth: true,
 	}
 );
-const weekday = ref(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]);
+const insertData: Ref<InsertData> = ref(
+	{
+		date: new Date().getTime(),
+		category: null,
+		item: null,
+		type: null,
+		cost: 0,
+		payMethod: null,
+		note: null
+	}
+);
 const dataTableColumns = ref([
 	{
 		title: "日期",
@@ -278,10 +325,42 @@ const dataTableData: Ref<MemoData[]> = ref([
 		note: "賺爛ㄌ"
 	}
 ]);
+//-----------------------------------------------------------------------------------------------------------------------
+const getWeekDate = () => {
+	let weekDate = [];
+
+
+	for (let i = 0; i < 7; i++) {
+		let newTimeStamp = today.value.timeStamp - ((1000 * 60 * 60 * 24) * (parseInt(today.value.weekday) - i));
+		let newDate: WeekDate = {
+			year: new Date(newTimeStamp).getFullYear().toString(),
+			month: (new Date(newTimeStamp).getMonth() + 1).toString(),
+			day: new Date(newTimeStamp).getDate().toString(),
+			weekday: weekday[new Date(newTimeStamp).getDay()],
+			isThisMonth: false,
+		};
+		newDate.isThisMonth = (newDate.year === today.value.year) && (newDate.month === today.value.month);
+		weekDate.push(newDate);
+	}
+	return weekDate;
+
+};
+
+
+//-----------------------------------------------------------------------------------------------------------------------
 const onlyAllowYear = (value: string) => !value || /^\d+$/.test(value);
 const onlyAllowMonth = (value: string) => !value || /^(1[0-2]|[1-9])$/.test(value);
 
-
+onMounted(() => {
+	today.value = {
+		timeStamp: new Date().getTime(),
+		year: new Date().getFullYear().toString(),
+		month: (new Date().getMonth() + 1).toString(),
+		day: new Date().getDate().toString(),
+		weekday: new Date().getDay().toString()
+	};
+	weekDate.value = getWeekDate();
+});
 
 </script>
     
@@ -386,7 +465,7 @@ const onlyAllowMonth = (value: string) => !value || /^(1[0-2]|[1-9])$/.test(valu
 }
 
 .data-insert-box {
-	width: 200px;
+	width: 225px;
 	margin: 5px;
 }
 
