@@ -3,7 +3,7 @@ use rusqlite::Connection;
 pub struct Transaction {
     transaction_id: Option<i32>,
     item_id: i32,
-    amount: i32,
+    cost: i32,
     notes: String,
     transaction_type: i32,
     payment_method_id: i32,
@@ -14,7 +14,7 @@ impl Transaction {
     pub fn new(
         transaction_id: Option<i32>,
         item_id: i32,
-        amount: i32,
+        cost: i32,
         notes: String,
         transaction_type: i32,
         payment_method_id: i32,
@@ -23,7 +23,7 @@ impl Transaction {
         Transaction {
             transaction_id,
             item_id,
-            amount,
+            cost,
             notes,
             transaction_type,
             payment_method_id,
@@ -34,7 +34,7 @@ impl Transaction {
         let sql = "CREATE TABLE IF NOT EXISTS Transactions (
             TransactionsId INTEGER PRIMARY KEY AUTOINCREMENT,
             ItemId INTEGER,
-            Amount INTEGER NOT NULL,
+            Cost INTEGER NOT NULL,
             Notes TEXT,
             TransactionType INTEGER NOT NULL,
             PaymentMethodId INTEGER NOT NULL,
