@@ -3,7 +3,7 @@
 
 		<div class="year-month-wrap">
 			<div class="year">
-				<n-button strong secondary @click="chooseDate.year = (parseInt(chooseDate.year) - 1).toString()">
+				<n-button strong secondary @click="changeYear('-')">
 					<template #icon>
 						<n-icon>
 							<ChevronBackCircleSharp />
@@ -11,8 +11,8 @@
 					</template>
 				</n-button>
 				<n-input type="text" :allow-input="onlyAllowYear" :maxlength="4" placeholder="請輸入年分"
-					v-model:value="chooseDate.year" />
-				<n-button strong secondary @click="chooseDate.year = (parseInt(chooseDate.year) + 1).toString()">
+					v-model:value="chooseDate.year" @input="changeYear('keydown')" />
+				<n-button strong secondary @click="changeYear('+')">
 					<template #icon>
 						<n-icon>
 							<ChevronForwardCircleSharp />
@@ -23,8 +23,7 @@
 			</div>
 
 			<div class="month">
-				<n-button strong secondary
-					@click="chooseDate.month = chooseDate.month === '1' ? '12' : (parseInt(chooseDate.month) - 1).toString()">
+				<n-button strong secondary @click="changeMonth('-')">
 					<template #icon>
 						<n-icon>
 							<ChevronBackCircleSharp />
@@ -32,9 +31,8 @@
 					</template>
 				</n-button>
 				<n-input type="text" :allow-input="onlyAllowMonth" :maxlength="2" placeholder="請輸入月分"
-					v-model:value="chooseDate.month" />
-				<n-button strong secondary
-					@click="chooseDate.month = chooseDate.month === '12' ? '1' : (parseInt(chooseDate.month) + 1).toString()">
+					v-model:value="chooseDate.month" @input="changeYear('keydown')" />
+				<n-button strong secondary @click=" changeMonth('+')">
 					<template #icon>
 						<n-icon>
 							<ChevronForwardCircleSharp />
@@ -46,7 +44,7 @@
 		</div>
 
 		<div class="date-wrap">
-			<n-button strong secondary>
+			<n-button strong secondary @click="changeWeekDates('-')">
 				<template #icon>
 					<n-icon>
 						<ChevronBackCircleSharp />
@@ -54,24 +52,28 @@
 				</template>
 			</n-button>
 
-			<div class="weekday-date" v-for="i in weekDate" :key="i.day">
-				<p :style="(i.weekday === 'Sun' || i.weekday === 'Sat') ? 'color:#c25e5e;' : 'color:#bdc9dc;'">{{
-					i.weekday }}</p>
-				<n-button class="today-button" strong secondary circle type="error"
-					v-if="i.isThisMonth && chooseDate.year === today.year && chooseDate.month === today.month && i.day === today.day"
-					@click="log(i)">
-					{{ i.day }}
+			<div class="weekday-date" v-for=" weekDate  in  weekDates " :key="weekDate.day">
+				<p
+					:style="(weekDate.weekday === 'Sun' || weekDate.weekday === 'Sat') ? 'color:#c25e5e;' : 'color:#bdc9dc;'">
+					{{
+						weekDate.weekday }}</p>
+				<n-button class="today-button" strong circle type="error"
+					v-if="weekDate.isThisMonth && chooseDate.year === today.year && chooseDate.month === today.month && weekDate.day === today.day"
+					@click="changeSelectDate(weekDate)"
+					:ghost="weekDate.year === selectDate.year && weekDate.month === selectDate.month && weekDate.day === selectDate.day ? false : true">
+					{{ weekDate.day }}
 				</n-button>
-				<n-button strong secondary circle type="success" v-else-if="i.isThisMonth && i.year === today.year"
-					@click="log(i)">
-					{{ i.day }}
+				<n-button strong circle type="success" v-else-if="weekDate.isThisMonth && weekDate.year === chooseDate.year"
+					@click="changeSelectDate(weekDate)"
+					:ghost="weekDate.year === selectDate.year && weekDate.month === selectDate.month && weekDate.day === selectDate.day ? false : true">
+					{{ weekDate.day }}
 				</n-button>
-				<n-button circle tertiary v-else @click="log(i)">
-					{{ i.day }}
-				</n-button>
+				<!-- <n-button circle tertiary v-else @click="log(weekDate)">
+					{{ weekDate.day }}
+				</n-button> -->
 			</div>
 
-			<n-button strong secondary>
+			<n-button strong secondary @click="changeWeekDates('+')">
 				<template #icon>
 					<n-icon>
 						<ChevronForwardCircleSharp />
@@ -206,9 +208,6 @@ type WeekDate = {
 	isThisMonth: boolean,
 }
 //-----------------------------------------------------------------------------------------------------------------------
-const log = (i) => {
-	console.log(i);
-}
 const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const today: Ref<Today> = ref({
 	timeStamp: new Date().getTime(),
@@ -217,8 +216,17 @@ const today: Ref<Today> = ref({
 	day: new Date().getDate().toString(),
 	weekday: new Date().getDay().toString()
 });
-const weekDate: Ref<WeekDate[]> = ref([]);
-const chooseDate: WeekDate = ref(
+const weekDates: Ref<WeekDate[]> = ref([]);
+const chooseDate: Ref<WeekDate> = ref(
+	{
+		year: today.value.year,
+		month: today.value.month,
+		day: today.value.day,
+		weekday: weekday[parseInt(today.value.weekday)],
+		isThisMonth: true,
+	}
+);
+const selectDate: Ref<WeekDate> = ref(
 	{
 		year: today.value.year,
 		month: today.value.month,
@@ -328,8 +336,6 @@ const dataTableData: Ref<MemoData[]> = ref([
 //-----------------------------------------------------------------------------------------------------------------------
 const getWeekDate = () => {
 	let weekDate = [];
-
-
 	for (let i = 0; i < 7; i++) {
 		let newTimeStamp = today.value.timeStamp - ((1000 * 60 * 60 * 24) * (parseInt(today.value.weekday) - i));
 		let newDate: WeekDate = {
@@ -343,10 +349,129 @@ const getWeekDate = () => {
 		weekDate.push(newDate);
 	}
 	return weekDate;
+};
+const changeSelectDate = (date: WeekDate) => {
+	selectDate.value.year = chooseDate.value.year;
+	selectDate.value.month = chooseDate.value.month;
+	selectDate.value.day = date.day;
+	selectDate.value.weekday = date.weekday;
+	selectDate.value.isThisMonth = date.isThisMonth;
+	insertData.value.date = parseInt(new Date(`${selectDate.value.year} ${selectDate.value.month} ${selectDate.value.day}`).toString());
 
 };
+const changeYear = (type: string) => {
+	if (type === "-") {
+		chooseDate.value.year = (parseInt(chooseDate.value.year) - 1).toString();
+		resetWeekDate();
+	}
+	if (type === "+") {
+		chooseDate.value.year = (parseInt(chooseDate.value.year) + 1).toString();
+		resetWeekDate();
+	}
+	if (type === "keydown") {
+		resetWeekDate();
+	}
+};
+const changeMonth = (type: string) => {
+	if (type === "-") {
+		chooseDate.value.month = chooseDate.value.month === "1" ? "12" : (parseInt(chooseDate.value.month) - 1).toString();
+		resetWeekDate();
+	}
+	if (type === "only-") {
+		chooseDate.value.month = chooseDate.value.month === "1" ? "12" : (parseInt(chooseDate.value.month) - 1).toString();
+	}
+	if (type === "+") {
+		chooseDate.value.month = chooseDate.value.month === "12" ? "1" : (parseInt(chooseDate.value.month) + 1).toString();
+		resetWeekDate();
+	}
+	if (type === "only+") {
+		chooseDate.value.month = chooseDate.value.month === "12" ? "1" : (parseInt(chooseDate.value.month) + 1).toString();
+	}
+	if (type === "keydown") {
+		resetWeekDate();
+	}
+};
+const changeWeekDates = (type: string) => {
+	if (type === "-") {
+		if (!weekDates.value[0].isThisMonth) {
+			changeMonth("only-");
+			for (let i = 0; i < weekDates.value.length; i++) {
+				weekDates.value[i].isThisMonth = !weekDates.value[i].isThisMonth;
 
+			}
+			console.log(weekDates.value);
 
+		} else {
+			const firstOfWeekDate = new Date(`${weekDates.value[0].year}-${weekDates.value[0].month}-${weekDates.value[0].day}`);
+
+			let weekDate = [];
+			for (let i = 0; i < 7; i++) {
+				let newTimeStamp = firstOfWeekDate.getTime() - ((1000 * 60 * 60 * 24) * (7 - i));
+				console.log(new Date(newTimeStamp));
+				let newDate: WeekDate = {
+					year: new Date(newTimeStamp).getFullYear().toString(),
+					month: (new Date(newTimeStamp).getMonth() + 1).toString(),
+					day: new Date(newTimeStamp).getDate().toString(),
+					weekday: weekday[new Date(newTimeStamp).getDay()],
+					isThisMonth: false,
+				};
+
+				newDate.isThisMonth = (newDate.year === chooseDate.value.year) && (newDate.month === chooseDate.value.month);
+				console.log((chooseDate.value.month)); console.log((newDate.month));
+				weekDate.push(newDate);
+			}
+			weekDates.value = weekDate;
+		}
+	}
+	if (type === "+") {
+		if (!weekDates.value[6].isThisMonth) {
+			changeMonth("only+");
+			for (let i = 0; i < weekDates.value.length; i++) {
+				weekDates.value[i].isThisMonth = !weekDates.value[i].isThisMonth;
+
+			}
+			console.log(weekDates.value);
+		} else {
+			const firstOfWeekDate = new Date(`${weekDates.value[6].year}-${weekDates.value[6].month}-${weekDates.value[6].day}`);
+
+			let weekDate = [];
+			for (let i = 0; i < 7; i++) {
+				let newTimeStamp = firstOfWeekDate.getTime() + ((1000 * 60 * 60 * 24) * (i + 1));
+				console.log(new Date(newTimeStamp));
+				let newDate: WeekDate = {
+					year: new Date(newTimeStamp).getFullYear().toString(),
+					month: (new Date(newTimeStamp).getMonth() + 1).toString(),
+					day: new Date(newTimeStamp).getDate().toString(),
+					weekday: weekday[new Date(newTimeStamp).getDay()],
+					isThisMonth: false,
+				};
+
+				newDate.isThisMonth = (newDate.year === chooseDate.value.year) && (newDate.month === chooseDate.value.month);
+				console.log((newDate));
+				weekDate.push(newDate);
+			}
+			weekDates.value = weekDate;
+		}
+	}
+};
+const resetWeekDate = () => {
+	const firstOfMonth = new Date(`${chooseDate.value.year}-${chooseDate.value.month}-01`);
+	let weekDate = [];
+	for (let i = 0; i < 7; i++) {
+		let newTimeStamp = firstOfMonth.getTime() - ((1000 * 60 * 60 * 24) * (firstOfMonth.getDay() - i));
+		let newDate: WeekDate = {
+			year: new Date(newTimeStamp).getFullYear().toString(),
+			month: (new Date(newTimeStamp).getMonth() + 1).toString(),
+			day: new Date(newTimeStamp).getDate().toString(),
+			weekday: weekday[new Date(newTimeStamp).getDay()],
+			isThisMonth: false,
+		};
+
+		newDate.isThisMonth = (newDate.year === firstOfMonth.getFullYear().toString()) && (newDate.month === (firstOfMonth.getMonth() + 1).toString());
+		weekDate.push(newDate);
+	}
+	weekDates.value = weekDate;
+};
 //-----------------------------------------------------------------------------------------------------------------------
 const onlyAllowYear = (value: string) => !value || /^\d+$/.test(value);
 const onlyAllowMonth = (value: string) => !value || /^(1[0-2]|[1-9])$/.test(value);
@@ -359,7 +484,7 @@ onMounted(() => {
 		day: new Date().getDate().toString(),
 		weekday: new Date().getDay().toString()
 	};
-	weekDate.value = getWeekDate();
+	weekDates.value = getWeekDate();
 });
 
 </script>
@@ -406,7 +531,13 @@ onMounted(() => {
 
 }
 
+.choose-date {
+	border-radius: 5px;
+	background-color: #3c3c3c;
+}
+
 .weekday-date {
+	width: 40px;
 	margin: 0 30px;
 }
 
