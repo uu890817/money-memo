@@ -92,7 +92,9 @@ pub fn select_all(from: String, tauri_connection: tauri::State<std::sync::Mutex<
     let connection = tauri_lock_connection.get_conn();
     match connection {
         Some(conn) => match from.as_str() {
-            "category" => tables::Category::select_all(&conn).unwrap(),
+            "Category" => tables::Category::select_all(&conn).unwrap(),
+            "Item" => tables::Item::select_all(&conn).unwrap(),
+            "PaymentMethod" => tables::PaymentMethod::select_all(&conn).unwrap(),
             _ => "Err".to_string(),
         },
         None => "Err".to_string(),

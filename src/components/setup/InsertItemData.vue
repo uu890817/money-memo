@@ -79,7 +79,7 @@ const insertItems = async () => {
 
 
 onMounted(async () => {
-	categorys.value = JSON.parse(await invoke("select_all", { from: "category" }));
+	categorys.value = JSON.parse(await invoke("select_all", { from: "Category" }));
 	for (let i = 0; i < categorys.value.length; i++) {
 		value.value.push([]);
 	}

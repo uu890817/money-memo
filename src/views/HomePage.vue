@@ -1,86 +1,8 @@
 <template>
 	<div class="home-wrap">
 
-		<div class="year-month-wrap">
-			<div class="year">
-				<n-button strong secondary @click="changeYear('-')">
-					<template #icon>
-						<n-icon>
-							<ChevronBackCircleSharp />
-						</n-icon>
-					</template>
-				</n-button>
-				<n-input type="text" :allow-input="onlyAllowYear" :maxlength="4" placeholder="請輸入年分"
-					v-model:value="chooseDate.year" @input="changeYear('keydown')" />
-				<n-button strong secondary @click="changeYear('+')">
-					<template #icon>
-						<n-icon>
-							<ChevronForwardCircleSharp />
-						</n-icon>
-					</template>
-				</n-button>
-				<span>年</span>
-			</div>
+		<SelectDate @selectDateUpdate="selectDateUpdate" />
 
-			<div class="month">
-				<n-button strong secondary @click="changeMonth('-')">
-					<template #icon>
-						<n-icon>
-							<ChevronBackCircleSharp />
-						</n-icon>
-					</template>
-				</n-button>
-				<n-input type="text" :allow-input="onlyAllowMonth" :maxlength="2" placeholder="請輸入月分"
-					v-model:value="chooseDate.month" @input="changeYear('keydown')" />
-				<n-button strong secondary @click=" changeMonth('+')">
-					<template #icon>
-						<n-icon>
-							<ChevronForwardCircleSharp />
-						</n-icon>
-					</template>
-				</n-button>
-				<span>月</span>
-			</div>
-		</div>
-
-		<div class="date-wrap">
-			<n-button strong secondary @click="changeWeekDates('-')">
-				<template #icon>
-					<n-icon>
-						<ChevronBackCircleSharp />
-					</n-icon>
-				</template>
-			</n-button>
-
-			<div class="weekday-date" v-for=" weekDate  in  weekDates " :key="weekDate.day">
-				<p
-					:style="(weekDate.weekday === 'Sun' || weekDate.weekday === 'Sat') ? 'color:#c25e5e;' : 'color:#bdc9dc;'">
-					{{
-						weekDate.weekday }}</p>
-				<n-button class="today-button" strong circle type="error"
-					v-if="weekDate.isThisMonth && chooseDate.year === today.year && chooseDate.month === today.month && weekDate.day === today.day"
-					@click="changeSelectDate(weekDate)"
-					:ghost="weekDate.year === selectDate.year && weekDate.month === selectDate.month && weekDate.day === selectDate.day ? false : true">
-					{{ weekDate.day }}
-				</n-button>
-				<n-button strong circle type="success" v-else-if="weekDate.isThisMonth && weekDate.year === chooseDate.year"
-					@click="changeSelectDate(weekDate)"
-					:ghost="weekDate.year === selectDate.year && weekDate.month === selectDate.month && weekDate.day === selectDate.day ? false : true">
-					{{ weekDate.day }}
-				</n-button>
-				<!-- <n-button circle tertiary v-else @click="log(weekDate)">
-					{{ weekDate.day }}
-				</n-button> -->
-			</div>
-
-			<n-button strong secondary @click="changeWeekDates('+')">
-				<template #icon>
-					<n-icon>
-						<ChevronForwardCircleSharp />
-					</n-icon>
-				</template>
-			</n-button>
-		</div>
 
 		<n-divider dashed />
 
@@ -99,81 +21,21 @@
 		<n-divider dashed>
 			<span>新增資料</span>
 		</n-divider>
-		<div class="data-insert-wrap">
-			<n-space justify="center">
-				<div class="data-insert-box">
-					交易日期:
-					<n-date-picker v-model:value="insertData.date" type="date" placeholder="選擇日期" />
-				</div>
 
-
-				<div class="data-insert-box">
-					交易類型:
-					<n-select v-model:value="insertData.category" :options="options" placeholder="選擇類型">
-						<template #empty>
-							<n-empty description="無數據" />
-						</template>
-					</n-select>
-				</div>
-
-				<div class="data-insert-box">
-					交易明細:
-					<n-select v-model:value="insertData.item" :options="options" placeholder="選擇明細">
-						<template #empty>
-							<n-empty description="無數據" />
-						</template>
-					</n-select>
-				</div>
-
-
-				<div class="data-insert-box">
-					交易金額:
-					<n-input-number v-model:value="insertData.cost" placeholder="輸入價錢">
-						<template #prefix>
-							$
-						</template>
-					</n-input-number>
-				</div>
-
-				<div class="data-insert-box">
-					支出/收入:
-					<n-select v-model:value="insertData.type" :options="options" placeholder="選擇交易種類">
-						<template #empty>
-							<n-empty description="無數據" />
-						</template>
-					</n-select>
-				</div>
-
-				<div class="data-insert-box">
-					支付方式:
-					<n-select v-model:value="insertData.payMethod" :options="options" placeholder="選擇支付方式">
-						<template #empty>
-							<n-empty description="無數據" />
-						</template>
-					</n-select>
-				</div>
-
-				<div class="data-insert-box">
-					備註:
-					<n-input v-model:value="insertData.note" type="text" placeholder="輸入備註" />
-				</div>
-
-
-			</n-space>
-			<n-button class="insert-button" strong secondary type="success">
-				送出
-			</n-button>
-		</div>
+		<InsertData :selectDate="selectDate" />
 
 		<NavBar />
 	</div>
 </template>
     
 <script setup lang='ts'>
-import { NButton, NInput, NIcon, NDivider, NDataTable, NEmpty, NDatePicker, NSelect, NSpace, NInputNumber } from "naive-ui";
-import { ChevronBackCircleSharp, ChevronForwardCircleSharp } from "@vicons/ionicons5";
+import { NButton, NDivider, NDataTable, NEmpty, useMessage } from "naive-ui";
 import NavBar from "@/components/home/NavBar.vue";
+import SelectDate from "@/components/home/SelectDate.vue";
+import InsertData from "@/components/home/InsertData.vue";
+
 import { Ref, onMounted, ref } from "vue";
+import { invoke } from "@tauri-apps/api/tauri";
 
 type MemoData = {
 	date: string,
@@ -184,22 +46,7 @@ type MemoData = {
 	payMethod: string,
 	note: string
 };
-type InsertData = {
-	date: number;
-	category: string | null;
-	item: string | null;
-	type: string | null;
-	cost: number;
-	payMethod: string | null;
-	note: string | null;
-};
-type Today = {
-	timeStamp: number,
-	year: string,
-	month: string,
-	day: string,
-	weekday: string
-}
+
 type WeekDate = {
 	year: string,
 	month: string,
@@ -208,44 +55,7 @@ type WeekDate = {
 	isThisMonth: boolean,
 }
 //-----------------------------------------------------------------------------------------------------------------------
-const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const today: Ref<Today> = ref({
-	timeStamp: new Date().getTime(),
-	year: new Date().getFullYear().toString(),
-	month: (new Date().getMonth() + 1).toString(),
-	day: new Date().getDate().toString(),
-	weekday: new Date().getDay().toString()
-});
-const weekDates: Ref<WeekDate[]> = ref([]);
-const chooseDate: Ref<WeekDate> = ref(
-	{
-		year: today.value.year,
-		month: today.value.month,
-		day: today.value.day,
-		weekday: weekday[parseInt(today.value.weekday)],
-		isThisMonth: true,
-	}
-);
-const selectDate: Ref<WeekDate> = ref(
-	{
-		year: today.value.year,
-		month: today.value.month,
-		day: today.value.day,
-		weekday: weekday[parseInt(today.value.weekday)],
-		isThisMonth: true,
-	}
-);
-const insertData: Ref<InsertData> = ref(
-	{
-		date: new Date().getTime(),
-		category: null,
-		item: null,
-		type: null,
-		cost: 0,
-		payMethod: null,
-		note: null
-	}
-);
+
 const dataTableColumns = ref([
 	{
 		title: "日期",
@@ -296,195 +106,35 @@ const dataTableData: Ref<MemoData[]> = ref([
 		payMethod: "轉帳",
 		note: "賺爛ㄌ"
 	},
-	{
-		date: "2022/01/01",
-		category: "投資",
-		item: "乙太幣",
-		type: "收入",
-		cost: "50",
-		payMethod: "轉帳",
-		note: "賺爛ㄌ"
-	},
-	{
-		date: "2022/01/01",
-		category: "投資",
-		item: "乙太幣",
-		type: "收入",
-		cost: "50",
-		payMethod: "轉帳",
-		note: "賺爛ㄌ"
-	},
-	{
-		date: "2022/01/01",
-		category: "投資",
-		item: "乙太幣",
-		type: "收入",
-		cost: "50",
-		payMethod: "轉帳",
-		note: "賺爛ㄌ"
-	},
-	{
-		date: "2022/01/01",
-		category: "投資",
-		item: "乙太幣",
-		type: "收入",
-		cost: "50",
-		payMethod: "轉帳",
-		note: "賺爛ㄌ"
-	}
 ]);
+
+const message = useMessage();
 //-----------------------------------------------------------------------------------------------------------------------
-const getWeekDate = () => {
-	let weekDate = [];
-	for (let i = 0; i < 7; i++) {
-		let newTimeStamp = today.value.timeStamp - ((1000 * 60 * 60 * 24) * (parseInt(today.value.weekday) - i));
-		let newDate: WeekDate = {
-			year: new Date(newTimeStamp).getFullYear().toString(),
-			month: (new Date(newTimeStamp).getMonth() + 1).toString(),
-			day: new Date(newTimeStamp).getDate().toString(),
-			weekday: weekday[new Date(newTimeStamp).getDay()],
-			isThisMonth: false,
-		};
-		newDate.isThisMonth = (newDate.year === today.value.year) && (newDate.month === today.value.month);
-		weekDate.push(newDate);
-	}
-	return weekDate;
+const selectDate: Ref<WeekDate> = ref({
+	year: new Date().getFullYear().toString(),
+	month: new Date().getMonth().toString(),
+	day: new Date().getDate().toString(),
+	weekday: new Date().getDay().toString(),
+	isThisMonth: false,
+});
+const selectDateUpdate = (data: WeekDate) => {
+
+	selectDate.value = data;
 };
-const changeSelectDate = (date: WeekDate) => {
-	selectDate.value.year = chooseDate.value.year;
-	selectDate.value.month = chooseDate.value.month;
-	selectDate.value.day = date.day;
-	selectDate.value.weekday = date.weekday;
-	selectDate.value.isThisMonth = date.isThisMonth;
-	insertData.value.date = parseInt(new Date(`${selectDate.value.year} ${selectDate.value.month} ${selectDate.value.day}`).toString());
 
-};
-const changeYear = (type: string) => {
-	if (type === "-") {
-		chooseDate.value.year = (parseInt(chooseDate.value.year) - 1).toString();
-		resetWeekDate();
-	}
-	if (type === "+") {
-		chooseDate.value.year = (parseInt(chooseDate.value.year) + 1).toString();
-		resetWeekDate();
-	}
-	if (type === "keydown") {
-		resetWeekDate();
-	}
-};
-const changeMonth = (type: string) => {
-	if (type === "-") {
-		chooseDate.value.month = chooseDate.value.month === "1" ? "12" : (parseInt(chooseDate.value.month) - 1).toString();
-		resetWeekDate();
-	}
-	if (type === "only-") {
-		chooseDate.value.month = chooseDate.value.month === "1" ? "12" : (parseInt(chooseDate.value.month) - 1).toString();
-	}
-	if (type === "+") {
-		chooseDate.value.month = chooseDate.value.month === "12" ? "1" : (parseInt(chooseDate.value.month) + 1).toString();
-		resetWeekDate();
-	}
-	if (type === "only+") {
-		chooseDate.value.month = chooseDate.value.month === "12" ? "1" : (parseInt(chooseDate.value.month) + 1).toString();
-	}
-	if (type === "keydown") {
-		resetWeekDate();
-	}
-};
-const changeWeekDates = (type: string) => {
-	if (type === "-") {
-		if (!weekDates.value[0].isThisMonth) {
-			changeMonth("only-");
-			for (let i = 0; i < weekDates.value.length; i++) {
-				weekDates.value[i].isThisMonth = !weekDates.value[i].isThisMonth;
 
-			}
-			console.log(weekDates.value);
 
-		} else {
-			const firstOfWeekDate = new Date(`${weekDates.value[0].year}-${weekDates.value[0].month}-${weekDates.value[0].day}`);
 
-			let weekDate = [];
-			for (let i = 0; i < 7; i++) {
-				let newTimeStamp = firstOfWeekDate.getTime() - ((1000 * 60 * 60 * 24) * (7 - i));
-				console.log(new Date(newTimeStamp));
-				let newDate: WeekDate = {
-					year: new Date(newTimeStamp).getFullYear().toString(),
-					month: (new Date(newTimeStamp).getMonth() + 1).toString(),
-					day: new Date(newTimeStamp).getDate().toString(),
-					weekday: weekday[new Date(newTimeStamp).getDay()],
-					isThisMonth: false,
-				};
-
-				newDate.isThisMonth = (newDate.year === chooseDate.value.year) && (newDate.month === chooseDate.value.month);
-				console.log((chooseDate.value.month)); console.log((newDate.month));
-				weekDate.push(newDate);
-			}
-			weekDates.value = weekDate;
+onMounted(async () => {
+	let connectionState = await invoke("create_connection");
+	if (connectionState === true) {
+		let tableState = await invoke("create_new_tables");
+		if (tableState === true) {
+			message.success("資料庫連結成功");
 		}
+	} else {
+		message.error("資料庫連結失敗");
 	}
-	if (type === "+") {
-		if (!weekDates.value[6].isThisMonth) {
-			changeMonth("only+");
-			for (let i = 0; i < weekDates.value.length; i++) {
-				weekDates.value[i].isThisMonth = !weekDates.value[i].isThisMonth;
-
-			}
-			console.log(weekDates.value);
-		} else {
-			const firstOfWeekDate = new Date(`${weekDates.value[6].year}-${weekDates.value[6].month}-${weekDates.value[6].day}`);
-
-			let weekDate = [];
-			for (let i = 0; i < 7; i++) {
-				let newTimeStamp = firstOfWeekDate.getTime() + ((1000 * 60 * 60 * 24) * (i + 1));
-				console.log(new Date(newTimeStamp));
-				let newDate: WeekDate = {
-					year: new Date(newTimeStamp).getFullYear().toString(),
-					month: (new Date(newTimeStamp).getMonth() + 1).toString(),
-					day: new Date(newTimeStamp).getDate().toString(),
-					weekday: weekday[new Date(newTimeStamp).getDay()],
-					isThisMonth: false,
-				};
-
-				newDate.isThisMonth = (newDate.year === chooseDate.value.year) && (newDate.month === chooseDate.value.month);
-				console.log((newDate));
-				weekDate.push(newDate);
-			}
-			weekDates.value = weekDate;
-		}
-	}
-};
-const resetWeekDate = () => {
-	const firstOfMonth = new Date(`${chooseDate.value.year}-${chooseDate.value.month}-01`);
-	let weekDate = [];
-	for (let i = 0; i < 7; i++) {
-		let newTimeStamp = firstOfMonth.getTime() - ((1000 * 60 * 60 * 24) * (firstOfMonth.getDay() - i));
-		let newDate: WeekDate = {
-			year: new Date(newTimeStamp).getFullYear().toString(),
-			month: (new Date(newTimeStamp).getMonth() + 1).toString(),
-			day: new Date(newTimeStamp).getDate().toString(),
-			weekday: weekday[new Date(newTimeStamp).getDay()],
-			isThisMonth: false,
-		};
-
-		newDate.isThisMonth = (newDate.year === firstOfMonth.getFullYear().toString()) && (newDate.month === (firstOfMonth.getMonth() + 1).toString());
-		weekDate.push(newDate);
-	}
-	weekDates.value = weekDate;
-};
-//-----------------------------------------------------------------------------------------------------------------------
-const onlyAllowYear = (value: string) => !value || /^\d+$/.test(value);
-const onlyAllowMonth = (value: string) => !value || /^(1[0-2]|[1-9])$/.test(value);
-
-onMounted(() => {
-	today.value = {
-		timeStamp: new Date().getTime(),
-		year: new Date().getFullYear().toString(),
-		month: (new Date().getMonth() + 1).toString(),
-		day: new Date().getDate().toString(),
-		weekday: new Date().getDay().toString()
-	};
-	weekDates.value = getWeekDate();
 });
 
 </script>
@@ -495,61 +145,7 @@ onMounted(() => {
 	height: 100vh;
 }
 
-.year-month-wrap {
-	display: flex;
-	justify-content: center;
-}
 
-
-
-.year,
-.month {
-	display: flex;
-	align-items: center;
-	padding: 10px 100px;
-	height: 30px;
-	max-width: 50%;
-}
-
-.year>*,
-.month>* {
-	margin: 0px 5px;
-	height: 30px;
-	font-size: 20px;
-}
-
-.date-wrap {
-	display: flex;
-	justify-content: center;
-	height: 60px;
-	margin-top: 10px;
-}
-
-.date-wrap>.n-button {
-	height: 60px;
-	margin: 0 30px;
-
-}
-
-.choose-date {
-	border-radius: 5px;
-	background-color: #3c3c3c;
-}
-
-.weekday-date {
-	width: 40px;
-	margin: 0 30px;
-}
-
-.weekday-date>p {
-	text-align: center;
-}
-
-.weekday-date>.n-button {
-	text-align: center;
-	width: 40px;
-	height: 40px;
-}
 
 .data-table-wrap {
 	position: relative;
